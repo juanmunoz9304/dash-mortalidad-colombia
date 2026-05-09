@@ -1,94 +1,21 @@
 import pandas as pd
 import dash
 from dash import dcc, html, Input, Output, ctx
-import json
-import unicodedata
-from urllib.request import urlopen
 from plots import maps, line, bar, pie
+from src import dao, services
 
 # Formatear
 
-# Aquí dataframear
-df_no_fetal = pd.read_excel('data/Anexo1.NoFetal2019_CE_15-03-23.xlsx', sheet_name='No_Fetales_2019')
-df_codigos_muerte = pd.read_excel('data/Anexo2.CodigosDeMuerte_CE_15-03-23.xlsx', sheet_name='Final')
-df_divipola = pd.read_excel('data/Divipola_CE_.xlsx', sheet_name='Hoja1')
+df = dao.DataLoad()
+sv = services.Services(df)
 
-def normalizar_texto(texto):
-    if not isinstance(texto, str): return ""
-    return ''.join(c for c in unicodedata.normalize('NFD', texto) 
-                  if unicodedata.category(c) != 'Mn').upper().strip()
-
-# Mapa
-def preparar_datos_mortalidad():
-    resumen = df_no_fetal.groupby('COD_DEPARTAMENTO').size().reset_index(name='TOTAL')
-    nombres = df_divipola[['COD_DEPARTAMENTO', 'DEPARTAMENTO']].drop_duplicates()
-    df_final = pd.merge(resumen, nombres, on='COD_DEPARTAMENTO')
-    df_final['ID_MAPA'] = df_final['DEPARTAMENTO'].apply(normalizar_texto)
-    mapeo = {'BOGOTA, D.C.': 'BOGOTA D.C.', 'NORTE DE SANTANDER': 'NORTE SANTANDER'}
-    df_final['ID_MAPA'] = df_final['ID_MAPA'].replace(mapeo)
-    return df_final
-
-# Lineas
-def preparar_mortalidad_mes():
-    df_mes = df_no_fetal.groupby('MES').size().reset_index(name='TOTAL')
-    meses_nombres = {
-        1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
-        7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'novimebre', 12: 'diciembre'
-    }
-    df_mes['MES_NOMBRE'] = df_mes['MES'].map(meses_nombres)
-    return df_mes
-
-# Barras
-def preparar_ciudades_mas_violentas():
-    # Códigos de X95 y sus traducciones según el excel
-    codigos_violencia = ['X950', 'X951', 'X952', 'X953', 'X954', 'X955', 'X956', 'X957', 'X958', 'X959']
-
-    # Filtrar y ordenar
-    df_violentos = df_no_fetal[df_no_fetal['COD_MUERTE'].isin(codigos_violencia)].copy()
-    homicidios_group = df_violentos.groupby('COD_DANE').size().reset_index(name='HOMICIDIOS').sort_values(by='HOMICIDIOS', ascending=False)
-
-    # relacionar
-    homicidios_group['COD_DANE'] = homicidios_group['COD_DANE'].astype(int)
-    df_divipola['COD_DANE'] = df_divipola['COD_DANE'].astype(int)
-
-    # cruzar datos
-    df_relacionado = pd.merge(
-        homicidios_group, 
-        df_divipola[['COD_DANE', 'MUNICIPIO']], 
-        on='COD_DANE'
-    ).head(5)
-    return df_relacionado
-
-# Pie
-def preparar_ciudades_menor_mortalidad():
-    conteo_group = df_no_fetal.groupby('COD_DANE').size().reset_index(name='TOTAL').sort_values(by='TOTAL', ascending=True)
-
-    conteo_group['COD_DANE'] = conteo_group['COD_DANE'].astype(int)
-    df_divipola['COD_DANE'] = df_divipola['COD_DANE'].astype(int)
-
-    df_relacionado = pd.merge(
-        conteo_group, 
-        df_divipola[['COD_DANE', 'MUNICIPIO']], 
-        on='COD_DANE'
-    ).head(10)
-    
-    return df_relacionado
-
-# Para el de mapa se trae info de un gits publico del mapa de colombia...
 app = dash.Dash(__name__)
 server = app.server
 
-url_geojson = 'https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json'
-with urlopen(url_geojson) as response:
-    counties_json = json.load(response)
-
-for feature in counties_json['features']:
-    feature['id'] = feature['properties']['NOMBRE_DPT']
-
-df_mapa_completo = preparar_datos_mortalidad()
-df_linea_completo = preparar_mortalidad_mes()
-df_barra_completo = preparar_ciudades_mas_violentas()
-df_circular_completo = preparar_ciudades_menor_mortalidad()
+df_mapa_completo = sv.preparar_datos_mortalidad()
+df_linea_completo = sv.preparar_mortalidad_mes()
+df_barra_completo = sv.preparar_ciudades_mas_violentas()
+df_circular_completo = sv.preparar_ciudades_menor_mortalidad()
 
 # layout general
 app.layout = html.Div([
@@ -96,7 +23,7 @@ app.layout = html.Div([
     
     html.Div(id='contenedor-graficos', style={'height': '75vh'}),
     
-    # Botones siempre disponibles en la parte inferior
+    # Botones siempre disponibles en la parte inferior con el div
     html.Div([
         html.Button('Ver grafico Mapa', id='btn-mapa', n_clicks=0),
         html.Button('Ver grafico Lineas', id='btn-lineas', n_clicks=0),
@@ -125,7 +52,7 @@ def mostrar_grafico(*args):
     if button_id == 'btn-mapa' or button_id is None:
         fig_mapa = maps.generar_choropleth_colombia(
             df=df_mapa_completo, 
-            geojson=counties_json, 
+            geojson=df.counties_json, 
             columna_id='ID_MAPA', 
             columna_valor='TOTAL'
         )
