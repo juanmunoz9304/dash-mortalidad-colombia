@@ -1,8 +1,9 @@
 import pandas as pd
 import dash
 from dash import dcc, html, Input, Output, ctx
-from plots import maps, line, bar, pie
+from src.plots import pie
 from src import dao, services
+from src.plots import bar, line, maps, table
 
 # Formatear
 
@@ -16,6 +17,8 @@ df_mapa_completo = sv.preparar_datos_mortalidad()
 df_linea_completo = sv.preparar_mortalidad_mes()
 df_barra_completo = sv.preparar_ciudades_mas_violentas()
 df_circular_completo = sv.preparar_ciudades_menor_mortalidad()
+df_tabla_completo = sv.preparar_causas_principales_de_mortalidad()
+df_barra_grupo_completo = sv.preparar_muertes_por_departamento_agrupando_sexo()
 
 # layout general
 app.layout = html.Div([
@@ -71,10 +74,11 @@ def mostrar_grafico(*args):
         return dcc.Graph(id='pie-plot', figure=fig_circular, style={'height': '100%'})
         
     elif button_id == 'btn-tabla':
-        return html.Div([html.H3("Tabla de Datos (En desarrollo)")])
+        return table.generar_table(df=df_tabla_completo)
         
     elif button_id == 'btn-barras-apiladas':
-        return html.Div([html.H3("Barras Apiladas (En desarrollo)")])
+        fig_barra_a = bar.generar_multi_bar_plot(df=df_barra_grupo_completo)
+        return dcc.Graph(id='bar-plot', figure=fig_barra_a, style={'height': '100%'})
         
     elif button_id == 'btn-histograma':
         return html.Div([html.H3("Histograma (En desarrollo)")])

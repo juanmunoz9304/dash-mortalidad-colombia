@@ -67,3 +67,39 @@ class Services:
         ).head(10)
         
         return df_relacionado
+    
+
+    # Table
+    def preparar_causas_principales_de_mortalidad(self):
+        conteo_causas = self.repo.df_no_fetal.groupby('COD_MUERTE').size().reset_index(name='TOTAL_CASOS')
+        obtener_diez = conteo_causas.sort_values(by='TOTAL_CASOS', ascending=False)
+
+        self.repo.df_codigos_muerte['CODIGOS_MUERTE'] = self.repo.df_codigos_muerte['CODIGOS_MUERTE'].astype(str).str.strip()
+
+
+        df_tabla_final = pd.merge(
+            obtener_diez,
+            self.repo.df_codigos_muerte[['CODIGOS_MUERTE', 'DESCRIPCION_MUERTE']], 
+            left_on='COD_MUERTE',
+            right_on='CODIGOS_MUERTE'
+        )
+
+        return df_tabla_final.head(10)
+    
+
+    def preparar_muertes_por_departamento_agrupando_sexo(self):
+        conteo_group = self.repo.df_no_fetal.groupby(['COD_DEPARTAMENTO', 'SEXO']).size().reset_index(name='TOTAL').sort_values(by='TOTAL', ascending=False)
+        conteo_group['COD_DEPARTAMENTO'] = conteo_group['COD_DEPARTAMENTO'].astype(int)
+        self.repo.df_divipola['COD_DEPARTAMENTO'] = self.repo.df_divipola['COD_DEPARTAMENTO'].astype(int)
+
+        genero_map = {1: 'MASCULINO', 2: 'FEMENINO', 3: 'INDETERMINADO'}
+        conteo_group['SEXO'] = conteo_group['SEXO'].map(genero_map)
+
+        # Limpieza de duplicados en Divipola para evitar registros redundantes en el merge
+        df_relacionado = pd.merge(
+            conteo_group, 
+            self.repo.df_divipola[['COD_DEPARTAMENTO', 'DEPARTAMENTO']].drop_duplicates(), 
+            on='COD_DEPARTAMENTO'
+        )
+
+        return df_relacionado.sort_values(by='DEPARTAMENTO').reset_index()
