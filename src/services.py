@@ -86,7 +86,7 @@ class Services:
 
         return df_tabla_final.head(10)
     
-
+    # Stack bar
     def preparar_muertes_por_departamento_agrupando_sexo(self):
         conteo_group = self.repo.df_no_fetal.groupby(['COD_DEPARTAMENTO', 'SEXO']).size().reset_index(name='TOTAL').sort_values(by='TOTAL', ascending=False)
         conteo_group['COD_DEPARTAMENTO'] = conteo_group['COD_DEPARTAMENTO'].astype(int)
@@ -103,3 +103,30 @@ class Services:
         )
 
         return df_relacionado.sort_values(by='DEPARTAMENTO').reset_index()
+    
+    def preparar_muertes_por_rangos_de_edad(self):
+        mapeo_rangos = {
+            range(0, 5): 'Mortalidad neonatal',
+            range(5, 7): 'Mortalidad infantil',
+            range(7, 9): 'Primera infancia',
+            range(9, 11): 'Niñez',
+            range(11, 12): 'Adolescencia',
+            range(12, 14): 'Juventud',
+            range(14, 17): 'Adultez temprana',
+            range(17, 20): 'Adultez intermedia',
+            range(20, 25): 'Vejez',
+            range(25, 29): 'Longevidad',
+            range(29, 30): 'Edad desconocida'
+        }
+
+        def buscar_categoria(codigo):
+            for rango, nombre in mapeo_rangos.items():
+                if codigo in rango:
+                    return nombre
+            return 'Edad desconocida'
+
+
+        self.repo.df_no_fetal['CATEGORIA_EDAD'] = self.repo.df_no_fetal['GRUPO_EDAD1'].apply(buscar_categoria)
+        conteo_edad = self.repo.df_no_fetal.groupby('CATEGORIA_EDAD').size().reset_index(name='CONTEO')
+
+        return conteo_edad

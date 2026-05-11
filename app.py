@@ -3,10 +3,10 @@ import dash
 from dash import dcc, html, Input, Output, ctx
 from src.plots import pie
 from src import dao, services
-from src.plots import bar, line, maps, table
+from src.plots import bar, line, maps, table, histogram
+from src.styles.obj_styles import Obj_Styles
 
 # Formatear
-
 df = dao.DataLoad()
 sv = services.Services(df)
 
@@ -19,6 +19,11 @@ df_barra_completo = sv.preparar_ciudades_mas_violentas()
 df_circular_completo = sv.preparar_ciudades_menor_mortalidad()
 df_tabla_completo = sv.preparar_causas_principales_de_mortalidad()
 df_barra_grupo_completo = sv.preparar_muertes_por_departamento_agrupando_sexo()
+df_histograma_completo = sv.preparar_muertes_por_rangos_de_edad()
+
+
+# Stylear
+obj_styles = Obj_Styles()
 
 # layout general
 app.layout = html.Div([
@@ -28,13 +33,13 @@ app.layout = html.Div([
     
     # Botones siempre disponibles en la parte inferior con el div
     html.Div([
-        html.Button('Ver grafico Mapa', id='btn-mapa', n_clicks=0),
-        html.Button('Ver grafico Lineas', id='btn-lineas', n_clicks=0),
-        html.Button('Ver grafico Barras', id='btn-barras', n_clicks=0),
-        html.Button('Ver grafico Circular', id='btn-circular', n_clicks=0),
-        html.Button('Ver Tabla', id='btn-tabla', n_clicks=0),
-        html.Button('Ver grafico Barras apiladas', id='btn-barras-apiladas', n_clicks=0),
-        html.Button('Ver histograma', id='btn-histograma', n_clicks=0),
+        html.Button('Ver gráfico Mapa', id='btn-mapa', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver gráfico Lineas', id='btn-lineas', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver gráfico Barras', id='btn-barras', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver gráfico Circular', id='btn-circular', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver Tabla', id='btn-tabla', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver gráfico Barras apiladas', id='btn-barras-apiladas', n_clicks=0, style=obj_styles.button_styles),
+        html.Button('Ver histograma', id='btn-histograma', n_clicks=0, style=obj_styles.button_styles),
     ], style={'textAlign': 'center', 'marginTop': '20px'})
 ])
 
@@ -81,7 +86,8 @@ def mostrar_grafico(*args):
         return dcc.Graph(id='bar-plot', figure=fig_barra_a, style={'height': '100%'})
         
     elif button_id == 'btn-histograma':
-        return html.Div([html.H3("Histograma (En desarrollo)")])
+        fig_histo = histogram.generar_histogram_plot(df=df_histograma_completo)
+        return dcc.Graph(id='histogram-plot', figure=fig_histo, style={'height': '100%'})
 
     return html.Div("Seleccione un gráfico")
 
