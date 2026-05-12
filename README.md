@@ -21,3 +21,7 @@ Aplicaciones 1 - Actividad 4: Aplicación web interactiva para el análisis de m
 
 ### > Abrir en:
 http://localhost:8050/
+
+
+### Los datos fueron probados y limpiados usando Colab antes de construirse cada función:
+https://colab.research.google.com/drive/1wHvnr58nzpBm8iQgOoc4-SM6y_r0rOcc?usp=sharing
