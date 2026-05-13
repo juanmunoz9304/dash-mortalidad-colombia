@@ -27,7 +27,7 @@ http://localhost:8050/
 https://colab.research.google.com/drive/1wHvnr58nzpBm8iQgOoc4-SM6y_r0rOcc?usp=sharing
 
 
-content = """# Análisis de Mortalidad en Colombia - Aplicación Web Interactiva
+# Análisis de Mortalidad en Colombia - Aplicación Web Interactiva
 
 ## Introducción
 Dash en Python permite trabajar una aplicación web visual para análisis de datos y estadística. Se diferencia con aplicaciones como Power BI y Tableau por permitir personalización desde el primer momento, dado que cada registro se crea desde cero exactamente como el ingeniero de datos pretende mostrar la información. Dash utiliza por debajo Flask como servidor de aplicaciones y permite encapsular etiquetas HTML para renderizar una página web. Usa Plotly como estándar de visión de datos y es capaz de renderizar figuras, gráficas, tablas entre otros como un conjunto completo de datos. Al ser un sistema servidor web, permite convertir el aplicativo en un servidor web aprovechando la velocidad de montaje de Flask como servidor web.
