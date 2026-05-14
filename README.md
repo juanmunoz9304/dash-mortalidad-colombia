@@ -13,7 +13,7 @@ Aplicaciones 1 - Actividad 4: Aplicación web interactiva para el análisis de m
 
 # Instrucciones:
 
-```pip install requirements.txt```
+```pip install -r requirements.txt```
 
 ### > Punto de partida: app.py
 
