@@ -4,11 +4,9 @@ Repo de dash python para trabajo de analisis de mortalidad en Colombia correspon
 # Trabajo:
 Aplicaciones 1 - Actividad 4: Aplicación web interactiva para el análisis de mortalidad en Colombia - UniSalle - Maestría en IA - Semestre 1
 
-# Autores:
+# Autor:
 
 ### Juan Sebastian Muñoz
-### Jonatán Sebastián Villalba
-### Juan David Salazar Rios
 
 
 # Instrucciones:
